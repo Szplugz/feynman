@@ -1,21 +1,39 @@
 "use client";
 
 import Image from "next/image";
-import PDFViewer from "./components/PDFViewer";
+import { useState, useEffect } from "react";
+import AfterUpload from "./_views/AfterUpload";
+import BeforeUpload from "./_views/BeforeUpload";
+
+// Pieces of state that live here: hasFileUploaded
+// In order for a file to have successfully uploaded, it must be sent to the backend,
+// and we must get a 200 from the backend, indicating that the file was able to be successfully parsed to json.
 
 export default function Home() {
+  const [file, setFile] = useState(null);
+  const [hasFileUploaded, setHasFileUploaded] = useState(false);
+
+  const handleFileChange = (file) => {
+    // send file to backend
+    // if response from api is ok, set hasFileUploadedToTrue
+    file && setHasFileUploaded(true);
+  };
+
+  const uploadFile = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  useEffect(() => {
+    handleFileChange(file);
+  }, [file]);
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <input className="hidden" type="file" id="file-upload"></input>
-      <button
-        className="upload-button"
-        onClick={() => {
-          document.getElementById("file-upload").click();
-        }}
-      >
-        Upload pdf
-      </button>
-      <PDFViewer file="https://courses.engr.illinois.edu/cs421/sp2024/lectures/01-02-intro.pdf"></PDFViewer>
+      {hasFileUploaded ? (
+        <AfterUpload></AfterUpload>
+      ) : (
+        <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
+      )}
     </main>
   );
 }
