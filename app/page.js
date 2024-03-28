@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import PDFViewer from "./components/PDFViewer";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       >
         Upload pdf
       </button>
+      <PDFViewer file="https://courses.engr.illinois.edu/cs421/sp2024/lectures/01-02-intro.pdf"></PDFViewer>
     </main>
   );
 }
