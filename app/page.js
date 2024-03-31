@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import AfterUpload from "./_views/AfterUpload";
 import BeforeUpload from "./_views/BeforeUpload";
 
@@ -38,6 +38,7 @@ export default function Home() {
   const handleFileChange = async (file) => {
     // send file to backend
     console.log("Sending file to backend");
+    setHasFileUploaded(true);
     const formData = new FormData();
     formData.append("files", file);
 
@@ -46,7 +47,7 @@ export default function Home() {
     const response = await fetch("/api/upload", requestOptions);
     // if response from api is ok, set hasFileUploadedToTrue
     for await (const chunk of streamAsyncIterator(response.body)) {
-      console.log(chunk);
+      setMessages((oldmessages) => [...oldmessages, chunk]);
     }
     // const reader = response.body.getReader();
     // while (true) {
@@ -84,15 +85,21 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       {hasFileUploaded ? (
-        <AfterUpload></AfterUpload>
+        <>
+          <AfterUpload></AfterUpload>
+          {messages.length ? (
+            <div>
+              {messages.map((message, index) => (
+                <p key={index}>{message}</p>
+              ))}
+            </div>
+          ) : (
+            <div>Loading...</div>
+          )}
+        </>
       ) : (
         <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
       )}
-      <div>
-        {messages.map((message, index) => (
-          <p key={index}>{message}</p>
-        ))}
-      </div>
     </main>
   );
 }
