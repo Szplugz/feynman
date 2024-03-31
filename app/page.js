@@ -12,9 +12,28 @@ import BeforeUpload from "./_views/BeforeUpload";
 // Once the file has successfully been converted to images, the ui should show a loading state until we recieve the first
 // piece of data from the server
 
+async function* streamAsyncIterator(stream) {
+  // Get a lock on the stream
+  const reader = stream.getReader();
+
+  try {
+    while (true) {
+      // Read from the stream
+      const { done, value } = await reader.read();
+      // Exit if we're done
+      if (done) return;
+      // Else yield the chunk
+      yield new TextDecoder().decode(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
+  const [messages, setMessages] = useState([]);
 
   const handleFileChange = async (file) => {
     // send file to backend
@@ -26,12 +45,32 @@ export default function Home() {
 
     const response = await fetch("/api/upload", requestOptions);
     // if response from api is ok, set hasFileUploadedToTrue
-    const res = await response.text();
-    if (res == "success") {
-      setHasFileUploaded(true);
-    } else {
-      console.log(res);
+    for await (const chunk of streamAsyncIterator(response.body)) {
+      console.log(chunk);
     }
+    // const reader = response.body.getReader();
+    // while (true) {
+    //   const { done, value } = await reader.read();
+    //   if (done) {
+    //     // Do something with last chunk of data then exit reader
+    //     return;
+    //   }
+    //   // Otherwise do something here to process current chunk
+    //   console.log(new TextDecoder().decode(value));
+    // }
+    // const res = await response.text();
+    // if (res == "success") {
+    //   setHasFileUploaded(true);
+    // } else {
+    //   console.log(res);
+    // }
+
+    // const eventsource = new EventSource("/api/upload");
+
+    // eventsource.onmessage = (event) => {
+    //   const newMessage = JSON.parse(event.data);
+    //   setMessages((prevMessages) => [...prevMessages, newMessage]);
+    // };
   };
 
   const uploadFile = (event) => {
@@ -49,6 +88,11 @@ export default function Home() {
       ) : (
         <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
       )}
+      <div>
+        {messages.map((message, index) => (
+          <p key={index}>{message}</p>
+        ))}
+      </div>
     </main>
   );
 }
