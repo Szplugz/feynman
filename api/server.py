@@ -1,10 +1,11 @@
 from urllib import request
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import base64
 import requests
 import os
 import json
 from dotenv import load_dotenv
+from io import BytesIO
 
 # to read pdfs
 from pypdf import PdfReader
@@ -63,8 +64,10 @@ def handle_file_upload():
     if file:
         # Process the file here
         # For example, save it to a directory
-        completion = get_claude_response(file)
-        return jsonify({"message": completion}), 200
+        # completion = get_claude_response(file)
+        # return jsonify({"message": completion}), 200
+        file_contents = file.read()
+        return Response(get_claude_response(file_contents), mimetype="text/event-stream")
     else:
         return jsonify({"error": "File not found"}), 400
 
@@ -136,22 +139,48 @@ def get_claude_response(file):
                                       'role': 'user',
                                       'content': prompt
                                   }]).content[0].text
-
-  reader = PdfReader(file)
-  number_of_pages = len(reader.pages)
+  file_like_object = BytesIO(file)
+  reader = PdfReader(file_like_object)
   text = ''.join([page.extract_text() for page in reader.pages])
 
   print('sending req to anthropic')
-  completion = get_completion(
-      anthropic_client, f"""Here is an academic paper: <paper>{text}</paper>
+#   completion = get_completion(
+#       anthropic_client, f"""Here is an academic paper: <paper>{text}</paper>
+
+#                               Please do the following:
+#                               1. Summarize the abstract at a kindergarten reading level. (In <kindergarten_abstract> tags.)
+#                               2. Write the Methods section as a recipe from the Moosewood Cookbook. (In <moosewood_methods> tags.)
+#                               3. Compose a short poem epistolizing the results in the style of Homer. (In <homer_results> tags.)
+#                               """)
+#   print(type(completion))
+#   return completion
+
+  with anthropic_client.messages.stream(model=MODEL_NAME,
+
+                                  max_tokens=4096,
+
+                                  messages=[{
+
+                                      'role': 'user',
+
+                                      'content': f"""Here is an academic paper: <paper>{text}</paper>
+
+
 
                               Please do the following:
+
                               1. Summarize the abstract at a kindergarten reading level. (In <kindergarten_abstract> tags.)
+
                               2. Write the Methods section as a recipe from the Moosewood Cookbook. (In <moosewood_methods> tags.)
+
                               3. Compose a short poem epistolizing the results in the style of Homer. (In <homer_results> tags.)
-                              """)
-  print(type(completion))
-  return completion
+
+                              """
+
+    }]) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+        yield text
 
 
 if __name__ == "__main__":
