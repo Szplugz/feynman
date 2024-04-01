@@ -62,12 +62,10 @@ def handle_file_upload():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
     if file:
-        # Process the file here
-        # For example, save it to a directory
-        # completion = get_claude_response(file)
-        # return jsonify({"message": completion}), 200
         file_contents = file.read()
-        return Response(get_claude_response(file_contents), mimetype="text/event-stream")
+        r = Response(get_claude_response(file_contents), mimetype="text/event-stream")
+        r.headers["Content-Encoding"] = "none",
+        return r
     else:
         return jsonify({"error": "File not found"}), 400
 
@@ -157,25 +155,18 @@ def get_claude_response(file):
 
   with anthropic_client.messages.stream(model=MODEL_NAME,
 
-                                  max_tokens=4096,
+                                  max_tokens=500,
 
                                   messages=[{
 
                                       'role': 'user',
 
-                                      'content': f"""Here is an academic paper: <paper>{text}</paper>
-
-
-
-                              Please do the following:
-
-                              1. Summarize the abstract at a kindergarten reading level. (In <kindergarten_abstract> tags.)
-
-                              2. Write the Methods section as a recipe from the Moosewood Cookbook. (In <moosewood_methods> tags.)
-
-                              3. Compose a short poem epistolizing the results in the style of Homer. (In <homer_results> tags.)
-
-                              """
+                                      'content': f"""
+                                      Here is an academic paper: <paper>{text}</paper> Please do the following:
+                                      Summarize the paper at a high school level in a manner that everyone can understand without losss of information. State: 
+                                      1. The significance of the findings of this study on our daily lives, if at all.
+                                      2. The strength of the study.
+                                      """
 
     }]) as stream:
     for text in stream.text_stream:
