@@ -130,9 +130,13 @@ def get_claude_response(file):
                                       """
 
     }]) as stream:
+    buffer = ""
     for text in stream.text_stream:
         print(text, end="", flush=True)
-        yield text
+        buffer += text
+        if len(buffer.split(" ")) >= 10:
+            yield buffer
+            buffer = ""
 
 
 if __name__ == "__main__":

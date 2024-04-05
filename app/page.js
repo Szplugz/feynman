@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import Header from "./_components/Header";
 import UploadButton from "./_components/UploadButton";
 import AfterUpload from "./_views/AfterUpload";
@@ -48,8 +48,10 @@ export default function Home() {
 
     const response = await fetch("/api/upload", requestOptions);
     // if response from api is ok, set hasFileUploadedToTrue
+
+    // Each chunk is ~10 words
     for await (const chunk of streamAsyncIterator(response.body)) {
-      setMessage((oldmessage) => oldmessage.concat(chunk));
+      setMessage((oldMessage) => oldMessage.concat(chunk));
     }
   };
 
