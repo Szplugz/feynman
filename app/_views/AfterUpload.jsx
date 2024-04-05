@@ -1,9 +1,14 @@
 import React from "react";
+import { ibm_plex_serif } from "../fonts";
 
-const AfterUpload = () => {
+const AfterUpload = ({ message }) => {
   return (
     <div>
-      <h1>File Upload Successful!</h1>
+      {message.length ? (
+        <p className={`${ibm_plex_serif.className}`}>{message}</p>
+      ) : (
+        <h1>File Upload Successful!</h1>
+      )}
     </div>
   );
 };

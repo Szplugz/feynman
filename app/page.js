@@ -35,7 +35,7 @@ async function* streamAsyncIterator(stream) {
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
 
   const handleFileChange = async (file) => {
     // send file to backend
@@ -49,31 +49,8 @@ export default function Home() {
     const response = await fetch("/api/upload", requestOptions);
     // if response from api is ok, set hasFileUploadedToTrue
     for await (const chunk of streamAsyncIterator(response.body)) {
-      setMessages((oldmessages) => [...oldmessages, chunk]);
+      setMessage((oldmessage) => oldmessage.concat(chunk));
     }
-    // const reader = response.body.getReader();
-    // while (true) {
-    //   const { done, value } = await reader.read();
-    //   if (done) {
-    //     // Do something with last chunk of data then exit reader
-    //     return;
-    //   }
-    //   // Otherwise do something here to process current chunk
-    //   console.log(new TextDecoder().decode(value));
-    // }
-    // const res = await response.text();
-    // if (res == "success") {
-    //   setHasFileUploaded(true);
-    // } else {
-    //   console.log(res);
-    // }
-
-    // const eventsource = new EventSource("/api/upload");
-
-    // eventsource.onmessage = (event) => {
-    //   const newMessage = JSON.parse(event.data);
-    //   setMessages((prevMessages) => [...prevMessages, newMessage]);
-    // };
   };
 
   const uploadFile = (event) => {
@@ -90,16 +67,7 @@ export default function Home() {
         <Header></Header>
         {hasFileUploaded ? (
           <>
-            <AfterUpload></AfterUpload>
-            {messages.length ? (
-              <div>
-                {messages.map((message, index) => (
-                  <p key={index}>{message}</p>
-                ))}
-              </div>
-            ) : (
-              <div>Loading...</div>
-            )}
+            <AfterUpload message={message}></AfterUpload>
           </>
         ) : (
           <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
