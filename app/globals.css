@@ -14,3 +14,7 @@
 .link:hover .link-title2 {
   transform: rotate(0);
 }
+
+main {
+  padding: calc(100vh / 6) calc(100vw / 12);
+}
