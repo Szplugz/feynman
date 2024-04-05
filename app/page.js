@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useState, useEffect, Suspense } from "react";
+import Header from "./_components/Header";
+import UploadButton from "./_components/UploadButton";
 import AfterUpload from "./_views/AfterUpload";
 import BeforeUpload from "./_views/BeforeUpload";
 
@@ -83,23 +85,29 @@ export default function Home() {
   }, [file]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      {hasFileUploaded ? (
-        <>
-          <AfterUpload></AfterUpload>
-          {messages.length ? (
-            <div>
-              {messages.map((message, index) => (
-                <p key={index}>{message}</p>
-              ))}
-            </div>
-          ) : (
-            <div>Loading...</div>
-          )}
-        </>
-      ) : (
-        <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
-      )}
+    <main className="bg-eggshell flex flex-col min-h-screen items-center justify-between py-24">
+      <div className="md:max-w-[600px] flex flex-col gap-10">
+        <Header></Header>
+        {hasFileUploaded ? (
+          <>
+            <AfterUpload></AfterUpload>
+            {messages.length ? (
+              <div>
+                {messages.map((message, index) => (
+                  <p key={index}>{message}</p>
+                ))}
+              </div>
+            ) : (
+              <div>Loading...</div>
+            )}
+          </>
+        ) : (
+          <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
+        )}
+        <div className="flex justify-center">
+          <UploadButton handleUpload={uploadFile}></UploadButton>
+        </div>
+      </div>
     </main>
   );
 }
