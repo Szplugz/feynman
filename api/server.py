@@ -106,7 +106,7 @@ def get_claude_response(file):
 
   with anthropic_client.messages.stream(model=MODEL_NAME,
 
-                                  max_tokens=500,
+                                  max_tokens=100,
 
                                   messages=[{
 
@@ -120,20 +120,11 @@ def get_claude_response(file):
                                       how many of the Bradford Hill criteria does the study match?
 
                                       If the text you recieved is not an academic paper, say so.
-                                      
-                                      Format your response as HTML. For example, wrap each paragraph in a <p> tag, render lists with <ol> + <li>,
-                                      split up sections using <div>, etc. 
                                       """
 
     }]) as stream:
-    buffer = ""
     for text in stream.text_stream:
-        buffer += text
-        print(buffer)
-        if len(buffer.split(" ")) >= 20:
-            yield buffer
-            buffer = ""
-    yield buffer
+        yield text
 
 
 if __name__ == "__main__":
