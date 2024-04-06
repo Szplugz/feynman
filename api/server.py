@@ -103,16 +103,6 @@ def get_claude_response(file):
   text = ''.join([page.extract_text() for page in reader.pages])
 
   print('sending req to anthropic')
-#   completion = get_completion(
-#       anthropic_client, f"""Here is an academic paper: <paper>{text}</paper>
-
-#                               Please do the following:
-#                               1. Summarize the abstract at a kindergarten reading level. (In <kindergarten_abstract> tags.)
-#                               2. Write the Methods section as a recipe from the Moosewood Cookbook. (In <moosewood_methods> tags.)
-#                               3. Compose a short poem epistolizing the results in the style of Homer. (In <homer_results> tags.)
-#                               """)
-#   print(type(completion))
-#   return completion
 
   with anthropic_client.messages.stream(model=MODEL_NAME,
 
@@ -124,19 +114,26 @@ def get_claude_response(file):
 
                                       'content': f"""
                                       Here is an academic paper: <paper>{text}</paper> Please do the following:
-                                      Summarize the paper at a high school level in a manner that everyone can understand without losss of information. State: 
+                                      Summarize the paper at a high school level in a manner that everyone can understand without losss of information. Use only one paragraph. Then state: 
                                       1. The significance of the findings of this study on our daily lives, if at all.
-                                      2. The strength of the study.
+                                      2. The strength of the study, based on the domain of the study. For example, if it is an epidemiological study trying to establish cause and effect,
+                                      how many of the Bradford Hill criteria does the study match?
+
+                                      If the text you recieved is not an academic paper, say so.
+                                      
+                                      Format your response as HTML. For example, wrap each paragraph in a <p> tag, render lists with <ol> + <li>,
+                                      split up sections using <div>, etc. 
                                       """
 
     }]) as stream:
     buffer = ""
     for text in stream.text_stream:
-        print(text, end="", flush=True)
         buffer += text
-        if len(buffer.split(" ")) >= 10:
+        print(buffer)
+        if len(buffer.split(" ")) >= 20:
             yield buffer
             buffer = ""
+    yield buffer
 
 
 if __name__ == "__main__":

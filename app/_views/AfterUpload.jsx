@@ -5,7 +5,7 @@ const AfterUpload = ({ message }) => {
   return (
     <div>
       {message.length ? (
-        <p className={`${ibm_plex_serif.className}`}>{message}</p>
+        <p className={`message ${ibm_plex_serif.className}`}>{message}</p>
       ) : (
         <h1>File Upload Successful!</h1>
       )}

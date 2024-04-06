@@ -23,11 +23,20 @@ async function* streamAsyncIterator(stream) {
       // Read from the stream
       const { done, value } = await reader.read();
       // Exit if we're done
-      if (done) return;
+      if (done) {
+        // If done, yield the last chunk if there is any
+        if (value) {
+          console.log("reading: ", new TextDecoder().decode(value));
+          yield new TextDecoder().decode(value);
+        }
+        return; // Exit the loop
+      }
       // Else yield the chunk
+      console.log("reading: ", new TextDecoder().decode(value));
       yield new TextDecoder().decode(value);
     }
   } finally {
+    console.log("done");
     reader.releaseLock();
   }
 }
