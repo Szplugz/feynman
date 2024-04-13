@@ -44,7 +44,7 @@ async function* streamAsyncIterator(stream) {
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
-  const [messages, setMessage] = useState([]);
+  const [messages, setMessage] = useState("");
 
   const handleFileChange = async (file) => {
     // send file to backend
@@ -59,7 +59,7 @@ export default function Home() {
     // if response from api is ok, set hasFileUploadedToTrue
 
     for await (const chunk of streamAsyncIterator(response.body)) {
-      setMessage((oldMessage) => [...oldMessage, chunk]);
+      setMessage((oldMessages) => oldMessages.concat(chunk));
     }
   };
 

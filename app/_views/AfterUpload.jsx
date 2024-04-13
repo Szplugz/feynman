@@ -2,14 +2,14 @@ import React from "react";
 import { ibm_plex_serif } from "../fonts";
 
 const AfterUpload = ({ messages }) => {
+  const renderTextWithLineBreaks = (text) => {
+    return text.split("\n").map((line, index) => <div key={index}>{line}</div>);
+  };
+
   return (
     <div>
       {messages.length ? (
-        <p>
-          {messages.map((m) => (
-            <span className="message">{m}</span>
-          ))}
-        </p>
+        <div>{renderTextWithLineBreaks(messages)}</div>
       ) : (
         <h1>File Upload Successful!</h1>
       )}
