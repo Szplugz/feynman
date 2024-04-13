@@ -3,15 +3,13 @@ import { ibm_plex_serif } from "../fonts";
 
 const AfterUpload = ({ messages }) => {
   return (
-    <div>
-      {messages.length ? (
+    <div className="">
+      {messages.length && (
         <p>
           {messages.map((m) => (
             <span className="message">{m}</span>
           ))}
         </p>
-      ) : (
-        <h1>File Upload Successful!</h1>
       )}
     </div>
   );

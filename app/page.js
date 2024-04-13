@@ -26,13 +26,14 @@ async function* streamAsyncIterator(stream) {
       if (done) {
         // If done, yield the last chunk if there is any
         if (value) {
-          console.log("reading: ", new TextDecoder().decode(value));
+          // console.log("reading: ", new TextDecoder().decode(value));
           yield new TextDecoder().decode(value);
         }
         return; // Exit the loop
       }
       // Else yield the chunk
-      console.log("reading: ", new TextDecoder().decode(value));
+      // console.log("reading: ", new TextDecoder().decode(value));
+      console.log(Object.keys(new TextDecoder().decode(value)));
       yield new TextDecoder().decode(value);
     }
   } finally {
@@ -44,22 +45,32 @@ async function* streamAsyncIterator(stream) {
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
-  const [messages, setMessage] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState([]);
 
   const handleFileChange = async (file) => {
+    setLoading(true);
+    setMessages([]);
     // send file to backend
     console.log("Sending file to backend");
-    setHasFileUploaded(true);
     const formData = new FormData();
     formData.append("files", file);
 
     const requestOptions = { method: "POST", body: formData };
 
     const response = await fetch("/api/upload", requestOptions);
-    // if response from api is ok, set hasFileUploadedToTrue
+
+    if (response.ok) {
+      console.log(response);
+      setLoading(false);
+      setHasFileUploaded(true);
+    } else {
+      //handle this better
+      console.log(response);
+    }
 
     for await (const chunk of streamAsyncIterator(response.body)) {
-      setMessage((oldMessage) => [...oldMessage, chunk]);
+      setMessages((oldMessage) => [...oldMessage, chunk]);
     }
   };
 
@@ -75,15 +86,20 @@ export default function Home() {
     <main className="bg-eggshell flex flex-col min-h-screen items-center justify-between py-24">
       <div className="md:max-w-[600px] flex flex-col gap-10">
         <Header></Header>
-        {hasFileUploaded ? (
-          <>
-            <AfterUpload messages={messages}></AfterUpload>
-          </>
-        ) : (
-          <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
-        )}
+        <div className="min-h-[80%]">
+          {hasFileUploaded ? (
+            <>
+              <AfterUpload messages={messages}></AfterUpload>
+            </>
+          ) : (
+            <BeforeUpload></BeforeUpload>
+          )}
+        </div>
         <div className="flex justify-center">
-          <UploadButton handleUpload={uploadFile}></UploadButton>
+          <UploadButton
+            loading={loading}
+            handleUpload={uploadFile}
+          ></UploadButton>
         </div>
       </div>
     </main>

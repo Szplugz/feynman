@@ -1,7 +1,7 @@
 import React from "react";
 import { ibm_plex_sans, ibm_plex_serif } from "../fonts";
 
-const BeforeUpload = ({ uploadFile }) => {
+const BeforeUpload = () => {
   return (
     <div className={`${ibm_plex_serif.className} w-full flex flex-col gap-6`}>
       <p>
