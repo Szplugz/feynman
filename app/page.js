@@ -33,7 +33,6 @@ async function* streamAsyncIterator(stream) {
       }
       // Else yield the chunk
       // console.log("reading: ", new TextDecoder().decode(value));
-      console.log(Object.keys(new TextDecoder().decode(value)));
       yield new TextDecoder().decode(value);
     }
   } finally {
@@ -45,32 +44,22 @@ async function* streamAsyncIterator(stream) {
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessage] = useState("");
 
   const handleFileChange = async (file) => {
-    setLoading(true);
-    setMessages([]);
     // send file to backend
     console.log("Sending file to backend");
+    setHasFileUploaded(true);
     const formData = new FormData();
     formData.append("files", file);
 
     const requestOptions = { method: "POST", body: formData };
 
     const response = await fetch("/api/upload", requestOptions);
-
-    if (response.ok) {
-      console.log(response);
-      setLoading(false);
-      setHasFileUploaded(true);
-    } else {
-      //handle this better
-      console.log(response);
-    }
+    // if response from api is ok, set hasFileUploadedToTrue
 
     for await (const chunk of streamAsyncIterator(response.body)) {
-      setMessages((oldMessage) => [...oldMessage, chunk]);
+      setMessage((oldMessages) => oldMessages.concat(chunk));
     }
   };
 
@@ -86,20 +75,15 @@ export default function Home() {
     <main className="bg-eggshell flex flex-col min-h-screen items-center justify-between py-24">
       <div className="md:max-w-[600px] flex flex-col gap-10">
         <Header></Header>
-        <div className="min-h-[80%]">
-          {hasFileUploaded ? (
-            <>
-              <AfterUpload messages={messages}></AfterUpload>
-            </>
-          ) : (
-            <BeforeUpload></BeforeUpload>
-          )}
-        </div>
+        {hasFileUploaded ? (
+          <>
+            <AfterUpload messages={messages}></AfterUpload>
+          </>
+        ) : (
+          <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
+        )}
         <div className="flex justify-center">
-          <UploadButton
-            loading={loading}
-            handleUpload={uploadFile}
-          ></UploadButton>
+          <UploadButton handleUpload={uploadFile}></UploadButton>
         </div>
       </div>
     </main>
