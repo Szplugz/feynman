@@ -6,6 +6,7 @@ import Header from "./_components/Header";
 import UploadButton from "./_components/UploadButton";
 import AfterUpload from "./_views/AfterUpload";
 import BeforeUpload from "./_views/BeforeUpload";
+import { flushSync } from "react-dom";
 
 // Pieces of state that live here: hasFileUploaded
 // In order for a file to have successfully uploaded, it must be sent to the backend,
@@ -13,6 +14,8 @@ import BeforeUpload from "./_views/BeforeUpload";
 // was able to be successfully converted to images
 // Once the file has successfully been converted to images, the ui should show a loading state until we recieve the first
 // piece of data from the server
+
+let i = 0;
 
 async function* streamAsyncIterator(stream) {
   // Get a lock on the stream
@@ -45,6 +48,7 @@ export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
   const [messages, setMessage] = useState("");
+  const [trigger, setTrigger] = useState(0);
 
   const handleFileChange = async (file) => {
     // send file to backend
@@ -59,7 +63,10 @@ export default function Home() {
     // if response from api is ok, set hasFileUploadedToTrue
 
     for await (const chunk of streamAsyncIterator(response.body)) {
-      setMessage((oldMessages) => oldMessages.concat(chunk));
+      flushSync(() => {
+        setMessage(chunk);
+      });
+      // setTrigger((oldTrigger) => oldTrigger + 1);
     }
   };
 

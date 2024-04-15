@@ -1,8 +1,13 @@
 import React from "react";
+import { useRef } from "react";
 import { ibm_plex_serif } from "../fonts";
 
 const AfterUpload = ({ messages }) => {
-  const isListItem = (text) => /^\d+\./.test(text) || text.length == 0;
+  // let messages = messageArray.length
+  //   ? messageArray[messageArray.length - 1]
+  //   : "";
+  const isListItem = (text) => /^\d+\./.test(text);
+  const hasNewline = (text) => text.includes("\n");
 
   /*
 
@@ -38,52 +43,157 @@ const AfterUpload = ({ messages }) => {
 
   */
 
+  let elements = useRef([
+    {
+      type: null,
+      content: null,
+    },
+  ]);
+
+  const insertText = (text) => {
+    if (text == "") {
+      return;
+    }
+    const numElements = elements.current.length;
+    const currentElement = elements.current[numElements - 1];
+    if (currentElement["type"] == "list") {
+      console.log(`! ADDING ${currentElement} TO CURRENT LIST ITEM`);
+      const numListItems = currentElement["content"].length;
+      currentElement["content"][numListItems - 1].push(text);
+    } else {
+      currentElement["content"].push(text);
+    }
+  };
+
   const formatText = (text) => {
-    const lines = text.split("\n");
-    console.log(lines.length);
-    const formattedLines = [];
-    let line = lines.shift();
-    while (lines.length) {
-      if (line.length == 0) {
-        line = lines.shift();
-        continue;
+    console.log(`formatting ${text}`);
+    if (text === undefined || text === "") {
+      return;
+    }
+    if (elements.current[0].type === null) {
+      if (isListItem(text)) {
+        elements.current = [
+          {
+            type: "list",
+            content: [[]],
+          },
+        ];
+      } else {
+        elements.current = [
+          {
+            type: "paragraph",
+            content: [],
+          },
+        ];
       }
-      let elem = { type: "null", content: [] };
-      if (isListItem(line)) {
-        elem["type"] = "list";
-        elem["content"] = [];
-        let i = 0;
-        while (lines.length && isListItem(line)) {
-          // console.log("line is list item");
-          if (line.length !== 0) {
-            elem["content"].push(line);
-          }
-          line = lines.shift();
+    }
+    if (hasNewline(text)) {
+      // first part goes into current element, second part goes into new element
+      let parts = text.split("\n");
+      parts = parts.filter((part) => hasNewline(part) == false);
+      const currentElementChunk = parts[0];
+      insertText(currentElementChunk);
+      const nextElementChunk = parts[parts.length - 1];
+      console.log(
+        `!!! FOUND NEWLINE in ${text} BETWEEN ${currentElementChunk} and ${nextElementChunk}`
+      );
+      if (isListItem(nextElementChunk)) {
+        if (isListItem(currentElementChunk)) {
+          // Add to current list but create new list item
+          const numElements = elements.current.length;
+          const currentElement = elements.current[numElements - 1];
+          currentElement["content"].push([nextElementChunk]);
+        } else {
+          // If next item is a list item, but prev elem was a paragraph, start new list
+          const numElements = elements.current.length;
+          const currentElement = elements.current[numElements - 1];
+          console.log(
+            `!!!!!!! ${currentElement} IS PART OF A PARAGRAPH, BUT ${nextElementChunk} IS THE START OF A LIST`
+          );
+          elements.current.push({
+            type: "list",
+            content: [[nextElementChunk]],
+          });
         }
       } else {
-        elem["type"] = "paragraph";
-        elem["content"] = line;
-        line = lines.shift();
+        // Else add to current paragraph
+        if (nextElementChunk.length) {
+          elements.current.push({
+            type: "paragraph",
+            content: [nextElementChunk],
+          });
+        }
       }
-      formattedLines.push(elem);
+    } else {
+      insertText(text);
     }
-    return formattedLines;
   };
+
+  formatText(messages);
+  console.log(elements.current);
+
+  // const formatText = (text) => {
+  //   const lines = text.split("\n");
+  //   console.log(lines.length);
+  //   const formattedLines = [];
+  //   let line = lines.shift();
+  //   while (lines.length) {
+  //     if (line.length == 0) {
+  //       line = lines.shift();
+  //       continue;
+  //     }
+  //     let elem = { type: "null", content: [] };
+  //     if (isListItem(line)) {
+  //       elem["type"] = "list";
+  //       elem["content"] = [];
+  //       let i = 0;
+  //       while (lines.length && isListItem(line)) {
+  //         // console.log("line is list item");
+  //         if (line.length !== 0) {
+  //           elem["content"].push(line);
+  //         }
+  //         line = lines.shift();
+  //       }
+  //     } else {
+  //       elem["type"] = "paragraph";
+  //       elem["content"] = line;
+  //       line = lines.shift();
+  //     }
+  //     formattedLines.push(elem);
+  //   }
+  //   return formattedLines;
+  // };
 
   // console.log(formatText(messages));
 
   return (
     <div>
       {messages.length ? (
-        formatText(messages).map((message, index) => {
+        elements.current.map((message, index) => {
           if (message["type"] == "paragraph") {
-            return <div key={index}>{message["content"]}</div>;
+            return (
+              <div key={index} className="paragraph">
+                {message["content"].map((chunk, index) => {
+                  return (
+                    <span key={index} className="chunk">
+                      {chunk}
+                    </span>
+                  );
+                })}
+              </div>
+            );
           } else {
             let listItems = message["content"];
             return (
-              <ul>
+              <ul className="list">
                 {listItems.map((item, index) => {
-                  return <li key={index}>{item}</li>;
+                  return (
+                    <li key={index}>
+                      {item.map((chunk, i) => {
+                        return <span key={i}>{chunk}</span>;
+                      })}
+                    </li>
+                  );
                 })}
               </ul>
             );
