@@ -190,7 +190,11 @@ const AfterUpload = ({ messages }) => {
                   return (
                     <li key={index}>
                       {item.map((chunk, i) => {
-                        return <span key={i}>{chunk}</span>;
+                        return (
+                          <span key={i} className="chunk">
+                            {chunk}
+                          </span>
+                        );
                       })}
                     </li>
                   );
