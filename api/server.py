@@ -122,18 +122,20 @@ def get_claude_response(file):
                                       how many of the Bradford Hill criteria does the study match? If it is not an epigemiological study, use the relevant criteria from whatever field the paper belongs to.
 
                                       If the text you recieved is not an academic paper, say so. When you format your response, please adhere to the following
-                                      markdown schema (wrapped in ---):
+                                    schema:
 
-                                      ---
-                                      # Title of the paper
-                                      ### Author 1, Author 2, Author 3...etc
+                                      <h1> Title of the paper
+                                      <h2> Author 1, Author 2, Author 3...etc
 
-                                      Rest of the content as a numbered list:
-                                      1. Item 1
-                                      2. Item 2
-                                      3. Item 3
+                                      Rest of the content as a combination of (potentially zero) paragraphs and lists:
+                                      <p> Sample paragraph
+
+                                      <li> Item 1
+                                      <li> Item 2
+                                      <li> Item 3
+
+                                      <p> Another paragraph
                                       ...etc.
-                                      ---
                                 
                                       """
 

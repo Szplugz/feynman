@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "./_components/Header";
 import UploadButton from "./_components/UploadButton";
 import AfterUpload from "./_views/AfterUpload";
@@ -44,11 +44,28 @@ async function* streamAsyncIterator(stream) {
   }
 }
 
+// Better way to split phrase into last word and everything before that?
+const joinWords = (phrase) => {
+  const parts = phrase.split(" ");
+  let completePhrase = "";
+  let lastWord = "";
+  parts.map((part, index) => {
+    if (index < parts.length - 1) {
+      completePhrase = completePhrase.concat(`${part} `);
+    } else {
+      lastWord = part;
+    }
+  });
+  return [completePhrase, lastWord];
+};
+
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
   const [messages, setMessage] = useState("");
-  const [trigger, setTrigger] = useState(0);
+  // Every buffer that is sent should consist of only full words
+  // Which means that each valud buffer ends in a whitespace
+  const buffer = useRef("");
 
   const handleFileChange = async (file) => {
     // send file to backend
@@ -64,7 +81,21 @@ export default function Home() {
 
     for await (const chunk of streamAsyncIterator(response.body)) {
       flushSync(() => {
-        setMessage(chunk);
+        console.log("Incoming chunk: ", JSON.stringify(chunk));
+        console.log("Current buffer: ", JSON.stringify(buffer.current));
+        buffer.current = buffer.current.concat(chunk);
+        if (buffer.current.includes(" ")) {
+          console.log(
+            "Buffer now contains whitespace - ",
+            JSON.stringify(buffer.current)
+          );
+          const bufferParts = joinWords(buffer.current);
+          // Send the complete word()
+          console.log(`Sending ${bufferParts[0]} to backend`);
+          setMessage(bufferParts[0]);
+          buffer.current = bufferParts[1];
+          console.log(`Setting buffer to ${bufferParts[1]}`);
+        }
       });
       // setTrigger((oldTrigger) => oldTrigger + 1);
     }
@@ -80,7 +111,7 @@ export default function Home() {
 
   return (
     <main className="bg-eggshell flex flex-col min-h-screen items-center justify-between py-24">
-      <div className="md:max-w-[600px] flex flex-col gap-10">
+      <div className="md:max-w-[600px] flex flex-col gap-10 text-xl">
         <Header></Header>
         {hasFileUploaded ? (
           <>

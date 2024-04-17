@@ -13,7 +13,7 @@ const UploadButton = ({ handleUpload, loading }) => {
       <button
         className={`link ${
           loading ? `bg-stone` : `bg-olive`
-        } flex upload-button bg-olive py-4 px-8 rounded-xl text-ivory hover:bg-stone`}
+        } flex upload-button bg-olive py-4 px-8 rounded-xl text-ivory hover:bg-stone text-base`}
         onClick={() => {
           document.getElementById("file-upload").click();
         }}
