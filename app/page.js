@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "./_components/Header";
 import UploadButton from "./_components/UploadButton";
 import AfterUpload from "./_views/AfterUpload";
 import BeforeUpload from "./_views/BeforeUpload";
+import { flushSync } from "react-dom";
 
 // Pieces of state that live here: hasFileUploaded
 // In order for a file to have successfully uploaded, it must be sent to the backend,
@@ -13,6 +14,8 @@ import BeforeUpload from "./_views/BeforeUpload";
 // was able to be successfully converted to images
 // Once the file has successfully been converted to images, the ui should show a loading state until we recieve the first
 // piece of data from the server
+
+let i = 0;
 
 async function* streamAsyncIterator(stream) {
   // Get a lock on the stream
@@ -26,13 +29,13 @@ async function* streamAsyncIterator(stream) {
       if (done) {
         // If done, yield the last chunk if there is any
         if (value) {
-          console.log("reading: ", new TextDecoder().decode(value));
+          // console.log("reading: ", new TextDecoder().decode(value));
           yield new TextDecoder().decode(value);
         }
         return; // Exit the loop
       }
       // Else yield the chunk
-      console.log("reading: ", new TextDecoder().decode(value));
+      // console.log("reading: ", new TextDecoder().decode(value));
       yield new TextDecoder().decode(value);
     }
   } finally {
@@ -41,10 +44,28 @@ async function* streamAsyncIterator(stream) {
   }
 }
 
+// Better way to split phrase into last word and everything before that?
+const joinWords = (phrase) => {
+  const parts = phrase.split(" ");
+  let completePhrase = "";
+  let lastWord = "";
+  parts.map((part, index) => {
+    if (index < parts.length - 1) {
+      completePhrase = completePhrase.concat(`${part} `);
+    } else {
+      lastWord = part;
+    }
+  });
+  return [completePhrase, lastWord];
+};
+
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
-  const [messages, setMessage] = useState([]);
+  const [messages, setMessage] = useState("");
+  // Every buffer that is sent should consist of only full words
+  // Which means that each valud buffer ends in a whitespace
+  const buffer = useRef("");
 
   const handleFileChange = async (file) => {
     // send file to backend
@@ -59,7 +80,24 @@ export default function Home() {
     // if response from api is ok, set hasFileUploadedToTrue
 
     for await (const chunk of streamAsyncIterator(response.body)) {
-      setMessage((oldMessage) => [...oldMessage, chunk]);
+      flushSync(() => {
+        console.log("Incoming chunk: ", JSON.stringify(chunk));
+        console.log("Current buffer: ", JSON.stringify(buffer.current));
+        buffer.current = buffer.current.concat(chunk);
+        if (buffer.current.includes(" ")) {
+          console.log(
+            "Buffer now contains whitespace - ",
+            JSON.stringify(buffer.current)
+          );
+          const bufferParts = joinWords(buffer.current);
+          // Send the complete word()
+          console.log(`Sending ${bufferParts[0]} to backend`);
+          setMessage(bufferParts[0]);
+          buffer.current = bufferParts[1];
+          console.log(`Setting buffer to ${bufferParts[1]}`);
+        }
+      });
+      // setTrigger((oldTrigger) => oldTrigger + 1);
     }
   };
 
@@ -73,7 +111,7 @@ export default function Home() {
 
   return (
     <main className="bg-eggshell flex flex-col min-h-screen items-center justify-between py-24">
-      <div className="md:max-w-[600px] flex flex-col gap-10">
+      <div className="md:max-w-[600px] flex flex-col gap-10 text-xl">
         <Header></Header>
         {hasFileUploaded ? (
           <>

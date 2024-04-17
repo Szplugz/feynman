@@ -106,24 +106,42 @@ def get_claude_response(file):
 
   with anthropic_client.messages.stream(model=MODEL_NAME,
 
-                                  max_tokens=100,
+                                  max_tokens=1024,
 
                                   messages=[{
 
                                       'role': 'user',
 
                                       'content': f"""
-                                      Here is an academic paper: <paper>{text}</paper> Please do the following:
-                                      Summarize the paper at a high school level in a manner that everyone can understand without losss of information. Use only one paragraph. Then state: 
+                                      Here is an academic paper: <paper>{text}</paper>. Please do the following:
+
+                                      Tell me the title of the paper and list the authors.
+                                      Summarize the paper at a high school level in a manner that everyone can understand without loss of information. Use only one paragraph. Then state:
                                       1. The significance of the findings of this study on our daily lives, if at all.
                                       2. The strength of the study, based on the domain of the study. For example, if it is an epidemiological study trying to establish cause and effect,
-                                      how many of the Bradford Hill criteria does the study match?
+                                      how many of the Bradford Hill criteria does the study match? If it is not an epigemiological study, use the relevant criteria from whatever field the paper belongs to.
 
-                                      If the text you recieved is not an academic paper, say so.
+                                      If the text you recieved is not an academic paper, say so. When you format your response, please adhere to the following
+                                    schema:
+
+                                      <h1> Title of the paper
+                                      <h2> Author 1, Author 2, Author 3...etc
+
+                                      Rest of the content as a combination of (potentially zero) paragraphs and lists:
+                                      <p> Sample paragraph
+
+                                      <li> Item 1
+                                      <li> Item 2
+                                      <li> Item 3
+
+                                      <p> Another paragraph
+                                      ...etc.
+                                
                                       """
 
     }]) as stream:
     for text in stream.text_stream:
+        print(text, end="", flush=True)
         yield text
 
 
