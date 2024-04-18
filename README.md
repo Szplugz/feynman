@@ -1,3 +1,5 @@
+### The current status of the codebase is nowhere near prod levels. It's dirty & messy, lacks tests, relies on LLMs to generate responses according to a particular format, etc. This is because my current prioirity is moving as fast as possible. I'll eventually clean everything up.
+
 ```
 git clone https://github.com/Szplugz/feynman.git
 ```
