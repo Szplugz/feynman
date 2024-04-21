@@ -24,13 +24,10 @@ export const stringToHtml = (string, trim = true) => {
 
 /* Removes html tags from strings */
 const removeTag = (phrase, tag) => {
-  console.log(`REMOVING ${tag} FROM ${phrase}`);
   if (!tag) {
-    console.log("no tag to filter out");
     return;
   }
   const parts = phrase.split(tag);
-  console.log("Parts: ", parts);
   return parts[parts.length - 1];
 };
 
@@ -51,22 +48,12 @@ const splitBufferByLastWhitespace = (phrase) => {
 
 /* Ensures that the chunks of text used to update the state consist of whole words.*/
 export const awaitWhitespace = (chunk, buffer) => {
-  console.log("Incoming chunk: ", JSON.stringify(chunk));
-  console.log("Current buffer: ", JSON.stringify(buffer.current));
   buffer.current = buffer.current.concat(chunk);
-
   // Once the buffer contains a whitespace, we update the state with everything before the whitespace
   // and only store everything that comes after it
   if (buffer.current.includes(" ")) {
-    console.log(
-      "Buffer now contains whitespace - ",
-      JSON.stringify(buffer.current)
-    );
     const bufferParts = splitBufferByLastWhitespace(buffer.current);
-    // Send the complete word()
-    console.log(`Sending ${bufferParts[0]} to backend`);
     buffer.current = bufferParts[1];
-    console.log(`Setting buffer to ${bufferParts[1]}`);
     return bufferParts[0];
   }
 };
@@ -83,17 +70,14 @@ export async function* streamAsyncIterator(stream) {
       if (done) {
         // If done, yield the last chunk if there is any
         if (value) {
-          // console.log("reading: ", new TextDecoder().decode(value));
           yield new TextDecoder().decode(value);
         }
         return; // Exit the loop
       }
       // Else yield the chunk
-      // console.log("reading: ", new TextDecoder().decode(value));
       yield new TextDecoder().decode(value);
     }
   } finally {
-    console.log("done");
     reader.releaseLock();
   }
 }
@@ -148,7 +132,6 @@ export const formatText = (text, elements) => {
     const numElements = elements.current.length;
     const currentElement = elements.current[numElements - 1];
     if (currentElement["type"] == "list") {
-      console.log(`! ADDING ${currentElement} TO CURRENT LIST ITEM`);
       const numListItems = currentElement["content"].length;
       currentElement["content"][numListItems - 1].push(text);
     } else {
@@ -156,7 +139,6 @@ export const formatText = (text, elements) => {
     }
   };
 
-  console.log(`formatting ${text}`);
   if (text === undefined || text === "") {
     return;
   }
@@ -201,9 +183,6 @@ export const formatText = (text, elements) => {
     const currentElementChunk = parts[0];
     insertTextIntoElement(currentElementChunk);
     const nextElementChunk = parts[parts.length - 1];
-    console.log(
-      `!!! FOUND NEWLINE in ${text} BETWEEN ${currentElementChunk} and ${nextElementChunk}`
-    );
     if (isListItem(nextElementChunk)) {
       const numElements = elements.current.length;
       const currentElement = elements.current[numElements - 1];
@@ -215,9 +194,6 @@ export const formatText = (text, elements) => {
         // If next item is a list item, but prev elem was a paragraph, start new list
         const numElements = elements.current.length;
         const currentElement = elements.current[numElements - 1];
-        console.log(
-          `!!!!!!! ${currentElementChunk} IS PART OF A PARAGRAPH, BUT ${nextElementChunk} IS THE START OF A LIST`
-        );
         elements.current.push({
           type: "list",
           content: [[removeTag(nextElementChunk, "<li>")]],

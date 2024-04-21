@@ -12,7 +12,6 @@ const AfterUpload = ({ message }) => {
   ]);
 
   formatText(message, elements);
-  console.log(elements.current);
 
   return (
     <div
