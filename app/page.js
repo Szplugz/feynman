@@ -19,24 +19,19 @@ import { awaitWhitespace, streamAsyncIterator } from "../app/_utils/utils.js";
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
-  const [messages, setMessage] = useState("");
-  // Every buffer that is sent should consist of only full words
-  // Which means that each valud buffer ends in a whitespace
-  const buffer = useRef("");
+  const [message, setMessage] = useState("");
+  const buffer = useRef(""); // For holding chunks until a whitespace is seen
 
   const handleFileChange = async (file) => {
-    // send file to backend
-    console.log("Sending file to backend");
     setHasFileUploaded(true);
+
     const formData = new FormData();
     formData.append("files", file);
-
     const requestOptions = { method: "POST", body: formData };
-
     const response = await fetch("/api/upload", requestOptions);
-    // if response from api is ok, set hasFileUploadedToTrue
 
     for await (const chunk of streamAsyncIterator(response.body)) {
+      // If the state needs to be updated, make sure it's updated before the next chunk makes it in
       flushSync(() => {
         let chunkWithCompleteWords = awaitWhitespace(chunk, buffer);
         if (chunkWithCompleteWords) {
@@ -60,7 +55,7 @@ export default function Home() {
         <Header></Header>
         {hasFileUploaded ? (
           <>
-            <AfterUpload messages={messages}></AfterUpload>
+            <AfterUpload message={message}></AfterUpload>
           </>
         ) : (
           <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
