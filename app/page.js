@@ -7,6 +7,7 @@ import UploadButton from "./_components/UploadButton";
 import AfterUpload from "./_views/AfterUpload";
 import BeforeUpload from "./_views/BeforeUpload";
 import { flushSync } from "react-dom";
+import { awaitWhitespace, streamAsyncIterator } from "../app/_utils/utils.js";
 
 // Pieces of state that live here: hasFileUploaded
 // In order for a file to have successfully uploaded, it must be sent to the backend,
@@ -14,50 +15,6 @@ import { flushSync } from "react-dom";
 // was able to be successfully converted to images
 // Once the file has successfully been converted to images, the ui should show a loading state until we recieve the first
 // piece of data from the server
-
-let i = 0;
-
-async function* streamAsyncIterator(stream) {
-  // Get a lock on the stream
-  const reader = stream.getReader();
-
-  try {
-    while (true) {
-      // Read from the stream
-      const { done, value } = await reader.read();
-      // Exit if we're done
-      if (done) {
-        // If done, yield the last chunk if there is any
-        if (value) {
-          // console.log("reading: ", new TextDecoder().decode(value));
-          yield new TextDecoder().decode(value);
-        }
-        return; // Exit the loop
-      }
-      // Else yield the chunk
-      // console.log("reading: ", new TextDecoder().decode(value));
-      yield new TextDecoder().decode(value);
-    }
-  } finally {
-    console.log("done");
-    reader.releaseLock();
-  }
-}
-
-// Better way to split phrase into last word and everything before that?
-const joinWords = (phrase) => {
-  const parts = phrase.split(" ");
-  let completePhrase = "";
-  let lastWord = "";
-  parts.map((part, index) => {
-    if (index < parts.length - 1) {
-      completePhrase = completePhrase.concat(`${part} `);
-    } else {
-      lastWord = part;
-    }
-  });
-  return [completePhrase, lastWord];
-};
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -81,23 +38,11 @@ export default function Home() {
 
     for await (const chunk of streamAsyncIterator(response.body)) {
       flushSync(() => {
-        console.log("Incoming chunk: ", JSON.stringify(chunk));
-        console.log("Current buffer: ", JSON.stringify(buffer.current));
-        buffer.current = buffer.current.concat(chunk);
-        if (buffer.current.includes(" ")) {
-          console.log(
-            "Buffer now contains whitespace - ",
-            JSON.stringify(buffer.current)
-          );
-          const bufferParts = joinWords(buffer.current);
-          // Send the complete word()
-          console.log(`Sending ${bufferParts[0]} to backend`);
-          setMessage(bufferParts[0]);
-          buffer.current = bufferParts[1];
-          console.log(`Setting buffer to ${bufferParts[1]}`);
+        let chunkWithCompleteWords = awaitWhitespace(chunk, buffer);
+        if (chunkWithCompleteWords) {
+          setMessage(chunkWithCompleteWords);
         }
       });
-      // setTrigger((oldTrigger) => oldTrigger + 1);
     }
   };
 
