@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "./_components/Header";
 import UploadButton from "./_components/UploadButton";
 import AfterUpload from "./_views/AfterUpload";
 import BeforeUpload from "./_views/BeforeUpload";
+import { flushSync } from "react-dom";
+import { awaitWhitespace, streamAsyncIterator } from "../app/_utils/utils.js";
 
 // Pieces of state that live here: hasFileUploaded
 // In order for a file to have successfully uploaded, it must be sent to the backend,
@@ -14,52 +16,36 @@ import BeforeUpload from "./_views/BeforeUpload";
 // Once the file has successfully been converted to images, the ui should show a loading state until we recieve the first
 // piece of data from the server
 
-async function* streamAsyncIterator(stream) {
-  // Get a lock on the stream
-  const reader = stream.getReader();
-
-  try {
-    while (true) {
-      // Read from the stream
-      const { done, value } = await reader.read();
-      // Exit if we're done
-      if (done) {
-        // If done, yield the last chunk if there is any
-        if (value) {
-          console.log("reading: ", new TextDecoder().decode(value));
-          yield new TextDecoder().decode(value);
-        }
-        return; // Exit the loop
-      }
-      // Else yield the chunk
-      console.log("reading: ", new TextDecoder().decode(value));
-      yield new TextDecoder().decode(value);
-    }
-  } finally {
-    console.log("done");
-    reader.releaseLock();
-  }
-}
-
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
+<<<<<<< HEAD
   const [messages, setMessage] = useState("");
+=======
+  const [message, setMessage] = useState("");
+  const buffer = useRef(""); // For holding chunks until a whitespace is seen
+>>>>>>> 8316d5810cf25e17b0293e6857b152ac55a8864a
 
   const handleFileChange = async (file) => {
-    // send file to backend
-    console.log("Sending file to backend");
     setHasFileUploaded(true);
+
     const formData = new FormData();
     formData.append("files", file);
-
     const requestOptions = { method: "POST", body: formData };
-
     const response = await fetch("/api/upload", requestOptions);
-    // if response from api is ok, set hasFileUploadedToTrue
 
     for await (const chunk of streamAsyncIterator(response.body)) {
+<<<<<<< HEAD
       setMessage((oldMessages) => oldMessages.concat(chunk));
+=======
+      // If the state needs to be updated, make sure it's updated before the next chunk makes it in
+      flushSync(() => {
+        let chunkWithCompleteWords = awaitWhitespace(chunk, buffer);
+        if (chunkWithCompleteWords) {
+          setMessage(chunkWithCompleteWords);
+        }
+      });
+>>>>>>> 8316d5810cf25e17b0293e6857b152ac55a8864a
     }
   };
 
@@ -73,11 +59,11 @@ export default function Home() {
 
   return (
     <main className="bg-eggshell flex flex-col min-h-screen items-center justify-between py-24">
-      <div className="md:max-w-[600px] flex flex-col gap-10">
+      <div className="md:max-w-[600px] flex flex-col gap-10 text-xl">
         <Header></Header>
         {hasFileUploaded ? (
           <>
-            <AfterUpload messages={messages}></AfterUpload>
+            <AfterUpload message={message}></AfterUpload>
           </>
         ) : (
           <BeforeUpload uploadFile={uploadFile}></BeforeUpload>
