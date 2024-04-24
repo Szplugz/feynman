@@ -19,12 +19,8 @@ import { awaitWhitespace, streamAsyncIterator } from "../app/_utils/utils.js";
 export default function Home() {
   const [file, setFile] = useState(null);
   const [hasFileUploaded, setHasFileUploaded] = useState(false);
-<<<<<<< HEAD
-  const [messages, setMessage] = useState("");
-=======
   const [message, setMessage] = useState("");
   const buffer = useRef(""); // For holding chunks until a whitespace is seen
->>>>>>> 8316d5810cf25e17b0293e6857b152ac55a8864a
 
   const handleFileChange = async (file) => {
     setHasFileUploaded(true);
@@ -35,9 +31,6 @@ export default function Home() {
     const response = await fetch("/api/upload", requestOptions);
 
     for await (const chunk of streamAsyncIterator(response.body)) {
-<<<<<<< HEAD
-      setMessage((oldMessages) => oldMessages.concat(chunk));
-=======
       // If the state needs to be updated, make sure it's updated before the next chunk makes it in
       flushSync(() => {
         let chunkWithCompleteWords = awaitWhitespace(chunk, buffer);
@@ -45,7 +38,10 @@ export default function Home() {
           setMessage(chunkWithCompleteWords);
         }
       });
->>>>>>> 8316d5810cf25e17b0293e6857b152ac55a8864a
+    }
+
+    if (buffer.current.length) {
+      setMessage(buffer.current);
     }
   };
 
