@@ -40,50 +40,6 @@ def encode_image(image_path):
     return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-def get_openai_response():
-  # Path to your image
-  image_path = "feynman-test.png"
-
-  # Getting the base64 string
-  base64_image = encode_image(image_path)
-
-  headers = {
-      "Content-Type": "application/json",
-      "Authorization": f"Bearer {api_key}"
-  }
-
-  payload = {
-      "model":
-      "gpt-4-vision-preview",
-      "messages": [{
-          "role":
-          "user",
-          "content": [{
-              "type":
-              "text",
-              "text":
-              "Summarize this image and highlight any important points from it that you think I should be aware of."
-          }, {
-              "type": "image_url",
-              "image_url": {
-                  "url": f"data:image/jpeg;base64,{base64_image}"
-              }
-          }]
-      }],
-      "max_tokens":
-      2000
-  }
-
-  response = requests.post("https://api.openai.com/v1/chat/completions",
-                           headers=headers,
-                           json=payload)
-  response = response.json()
-  with open('data.json', 'w', encoding='utf-8') as f:
-    json.dump(response, f, ensure_ascii=False, indent=4)
-
-  print(response['choices'][0]['message'])
-
-
 def get_claude_response(file):
 
   anthropic_client = Anthropic(
@@ -116,7 +72,7 @@ def get_claude_response(file):
                                       Here is an academic paper: <paper>{text}</paper>. Please do the following:
 
                                       Tell me the title of the paper and list the authors.
-                                      Summarize the paper at a high school level in a manner that everyone can understand without loss of information. Use only one paragraph. Then state:
+                                    More often than not, academic papers use industry-specific jargon to convey their results to a very specific audience. Imagine that you are Richard Feynman, and you're teaching a classroom of 10th graders. While you understand all of this jargon and the math and stats used in this paper, your students might not. Summarize the paper at a high school level in a manner that everyone can understand without loss of information. Simplify complex terms and tell your students what this paper is trying to say. Try to use only one paragraph, and strictly no more than two. Then state:
                                       1. The significance of the findings of this study on our daily lives, if at all.
                                       2. The strength of the study, based on the domain of the study. For example, if it is an epidemiological study trying to establish cause and effect,
                                       how many of the Bradford Hill criteria does the study match? If it is not an epigemiological study, use the relevant criteria from whatever field the paper belongs to.
@@ -146,4 +102,4 @@ def get_claude_response(file):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(port=8000, debug=True)
