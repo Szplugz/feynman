@@ -45,7 +45,7 @@ def get_claude_response(file):
   anthropic_client = Anthropic(
       api_key=os.environ.get("ANTHROPIC_API_KEY")
   )
-  MODEL_NAME = "claude-3-opus-20240229"
+  MODEL_NAME = "claude-3-5-sonnet-20240620"
 
   def get_completion(client, prompt):
     return client.messages.create(model=MODEL_NAME,
