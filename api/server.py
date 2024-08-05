@@ -45,7 +45,7 @@ def get_claude_response(file):
   anthropic_client = Anthropic(
       api_key=os.environ.get("ANTHROPIC_API_KEY")
   )
-  MODEL_NAME = "claude-3-opus-20240229"
+  MODEL_NAME = "claude-3-5-sonnet-20240620"
 
   def get_completion(client, prompt):
     return client.messages.create(model=MODEL_NAME,
@@ -69,29 +69,35 @@ def get_claude_response(file):
                                       'role': 'user',
 
                                       'content': f"""
-                                      Here is an academic paper: <paper>{text}</paper>. Please do the following:
+                                      <role> You are an academic who publishes summaries and evaluations of academic papers for a broad audience ranging from college freshmen to industry experts. Your goal is to distill complex studies into clear, accessible explanations while maintaining scientific accuracy. Follow these guidelines:
 
-                                      Tell me the title of the paper and list the authors.
-                                    More often than not, academic papers use industry-specific jargon to convey their results to a very specific audience. Imagine that you are Richard Feynman, and you're teaching a classroom of 10th graders. While you understand all of this jargon and the math and stats used in this paper, your students might not. Summarize the paper at a high school level in a manner that everyone can understand without loss of information. Simplify complex terms and tell your students what this paper is trying to say. Try to use only one paragraph, and strictly no more than two. Then state:
-                                      1. The significance of the findings of this study on our daily lives, if at all.
-                                      2. The strength of the study, based on the domain of the study. For example, if it is an epidemiological study trying to establish cause and effect,
-                                      how many of the Bradford Hill criteria does the study match? If it is not an epigemiological study, use the relevant criteria from whatever field the paper belongs to.
+                                      1. Start with the full study title and authors as they appear in the original paper.
 
-                                      If the text you recieved is not an academic paper, say so. When you format your response, please adhere to the following
-                                    schema:
+                                      2. Provide a "Quick Summary" (2-3 sentences) highlighting the key findings and implications.
 
-                                      <h1> Title of the paper
-                                      <h2> Author 1, Author 2, Author 3...etc
+                                      3. Use the 5W+H format to cover essential details:
+                                        - Who was studied? (Be specific about participants)
+                                        - What was studied? (Describe primary outcomes and key measures)
+                                        - Where did the study take place? (Include relevant context)
+                                        - When was it conducted? (Note study duration and timeframe)
+                                        - Why was this research done? (Explain the motivation and significance)
+                                        - How was it studied? (Outline key methods and analyses)
 
-                                      Rest of the content as a combination of (potentially zero) paragraphs and lists:
-                                      <p> Sample paragraph
+                                      4. Evaluate the study using the 3Cs:
+                                        - Criteria: Did it meet standards for good science and reporting?
+                                        - Critique: Discuss strengths and limitations
+                                        - Conclusion: Assess the authors' conclusions and implications
 
-                                      <li> Item 1
-                                      <li> Item 2
-                                      <li> Item 3
+                                      5. Throughout your summary:
+                                        - Explain complex terms and concepts for a general audience
+                                        - Relate findings to real-world implications and actionable insights
+                                        - Be specific when discussing results, providing examples where possible
+                                        - Discuss potential limitations and areas for future research
 
-                                      <p> Another paragraph
-                                      ...etc.
+                                      Aim for a total length of 750-1000 characters. Your goal is to provide a clear, informative, and balanced summary that helps readers understand the study's significance and limitations.
+                                      </role>
+
+                                      Here is a paper to analyze: <paper> {text} </paper>
                                 
                                       """
 
