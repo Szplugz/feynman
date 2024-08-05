@@ -95,6 +95,32 @@ def get_claude_response(file):
                                         - Discuss potential limitations and areas for future research
 
                                       Aim for a total length of 750-1000 characters. Your goal is to provide a clear, informative, and balanced summary that helps readers understand the study's significance and limitations.
+
+                                    When you format your response, please adhere to the following schema:
+
+                                      <h1> Title of the paper
+                                      <h2> Author 1, Author 2, Author 3...etc
+
+                                      Rest of the content as a combination of (potentially zero) paragraphs, headings, and lists:
+                                      <h2> Quick Summary:
+                                      <p> Sample paragraph
+
+                                      <h2> Who was studied? 
+                                      <p> Response to who was studied
+
+                                      <h2> What was studied?
+                                      <p> Response to what was studied
+
+                                      ...repeat for the rest of the Ws + H, as well as for Criteria, Critique, and Conclusion. Essentially, start any subsequent heading (such as "Conclusion") with an <h2> tags.
+                                      The actual response for that heading (such as the actual conclusion) should be lead with a <p>. DO NOT ADD CLOSING TAGS SUCH AS </h2> OR </p>.
+
+                                      <li> Item 1
+                                      <li> Item 2
+                                      <li> Item 3
+
+                                      <p> Another paragraph
+                                      ...etc.
+
                                       </role>
 
                                       Here is a paper to analyze: <paper> {text} </paper>
