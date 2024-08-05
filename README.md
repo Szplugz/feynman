@@ -13,6 +13,12 @@ npm i
 npm run dev
 ```
 
+Then, create a new terminal session, `cd` into `/api`, and start the flask server.
+
+```
+python3 server.py
+```
+
 Upload file at `localhost:3000` and revel at the beauty of trillions of electrons running around on your machine and around the world to produce beautifully streamed text on your screen!
 
 _I know this is a terrible README and I'm probably missing a bunch of instructions, so pls lmk what._
