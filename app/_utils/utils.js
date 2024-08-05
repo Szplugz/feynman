@@ -200,21 +200,21 @@ export const formatText = (text, elements) => {
         });
       }
     } else if (nextElementChunk.length) {
-      if (isParagraph(nextElementChunk)) {
-        // Else add to current paragraph
-        elements.current.push({
-          type: "paragraph",
-          content: [removeTag(nextElementChunk, "<p>")],
-        });
-      } else if (isHeadingOne(nextElementChunk)) {
+      if (isHeadingOne(nextElementChunk)) {
         elements.current.push({
           type: "h1",
           content: [removeTag(nextElementChunk, "<h1>")],
         });
-      } else {
+      } else if (isHeadingTwo(nextElementChunk)) {
         elements.current.push({
           type: "h2",
           content: [removeTag(nextElementChunk, "<h2>")],
+        });
+      } else {
+        // Else add to current paragraph
+        elements.current.push({
+          type: "paragraph",
+          content: [removeTag(nextElementChunk, "<p>")],
         });
       }
     }
